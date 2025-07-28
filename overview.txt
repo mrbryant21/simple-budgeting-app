@@ -1,0 +1,33 @@
+## Project Overview
+
+A simple personal budget application using JavaScript fundamentals. The app will track income and expenses, calculate the balance, and manage financial transactions - all without using advanced concepts like higher-order functions or callbacks.
+
+Core functionality 
+-- Add Income and expense transactions
+--Track Total balance(income - expenses)
+--List all transactions
+--Delete transactions
+
+
+Data Structure 
+
+### The Transaction Array
+
+The core of the app will be an array that stores all transactions. Each transaction will be represented as an object with these properties:
+
+// Example transaction array structure
+let transactions = [
+  { type: "income", amount: 1000, description: "Salary" },
+  { type: "expense", amount: 200, description: "Groceries" }
+];
+
+
+### Key Variables
+
+You'll need several key variables to manage the application state:
+
+- **transactions**: Array to store all transaction objects
+- **balance**: Number to track the current balance
+- **totalIncome**: Number to track the sum of all income
+- **totalExpenses**: Number to track the sum of all expenses
+
