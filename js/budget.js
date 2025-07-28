@@ -140,3 +140,46 @@ function showMenu() {
 
 console.log("Welcome to the Simple Personal Budgeting App!");
 showMenu();
+
+//data saving and loading through browser sessions
+function saveData() {
+  //convert transaction array to JSON string
+   const transactionsJSON = JSON.stringify(transactions);
+
+   localStorage.setItem('budgetAppTransactions', transactionsJSON);
+
+   localStorage.setItem('budgetAppTotals', JSON.stringify({
+      balance: balance,
+      totalIncome: totalIncome,
+      totalExpenses: totalExpenses
+   }));
+
+   console.log("All transactions saved successfully!");
+}
+
+function loadData() {
+  const savedTransactions = localStorage.getItem('budgetAppTransactions');
+
+  if(!savedTransactions){
+     console.log("No saved data found");
+     return;
+  }
+
+  try {
+    transactions = JSON.parse(savedTransactions);
+    const savedTotals = JSON.parse(localStorage.getItem('budgetAppTotals'));
+    if(savedTotals) {
+      const totals = JSON.parse(savedTotals);
+      balance = totals.balance;
+      totalIncome = totals.totalIncome;
+      totalExpenses = totals.totalExpenses;
+    }
+    else {
+    calculateBalance();
+    console.log("Data loaded successfully!");
+  }
+  return true;
+  } catch (error) {
+    console.error("Error loading data:", error);
+  }
+}
