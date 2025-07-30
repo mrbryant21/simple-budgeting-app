@@ -4,6 +4,34 @@ let balance = 0;
 let totalIncome = 0;
 let totalExpenses = 0;
 
+const descriptionInput = document.getElementById("description");
+const amountInput = document.getElementById("amount");
+const typeInput = document.getElementById("type");
+const transactionForm = document.querySelector(".transaction-form");
+const transactionHistoryBody = document.querySelector(
+  "#transaction-history tbody"
+);
+const totalIncomeElem = document.getElementById("total-income");
+const totalExpensesElem = document.getElementById("total-expenses");
+const totalBalanceElem = document.getElementById("total-balance");
+
+//event listener for form submission to add a transaction and update the ui
+transactionForm.addEventListener("submit", function (e) {
+  e.preventDefault();
+  const description = descriptionInput.value.trim();
+  const amount = parseFloat(amountInput.value);
+  const type = typeInput.value;
+
+  addTransaction(description, type, amount);
+  displayTransactions();
+  renderSummary();
+
+  //clear input fields after submission
+  descriptionInput.value = "";
+  amountInput.value = "";
+  typeInput.value = "income";
+});
+
 //function to add a transaction
 function addTransaction(description, type, amount) {
   if (typeof amount !== "number" || amount <= 0) {
@@ -19,7 +47,6 @@ function addTransaction(description, type, amount) {
     return;
   }
 
-  
   const transaction = {
     description,
     type,
@@ -53,17 +80,35 @@ function calculateBalance() {
 }
 
 function displayTransactions() {
-  if (transactions.length === 0) {
-    console.log("No transactions available.");
-    return;
-  }
-  for (let i = 0; i < transactions.length; i++) {
-    let transaction = transactions[i];
-    console.log(
-      `Description: ${transaction.description}, Type: ${transaction.type}, Amount: $${transaction.amount}, Balance: $${balance}, ${transaction}`
-    );
+  transactionHistoryBody.innerHTML = "";
+  transactions.forEach((transaction, index) => {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+    <td> ${transaction.description}</td>
+    <td>$${transaction.amount.toFixed(2)}</td>
+    <td class="type-text-${transaction.type}">${capitalize(transaction.type)}</td>
+    <td>
+        <button class="btn btn-danger btn-sm delete-transaction-button" data-index="${index}">
+          <i class="fas fa-trash"></i>
+        </button>
+      </td>
+    `;
+    transactionHistoryBody.appendChild(row);
+  });
+  function capitalize(str) {
+    return str.charAt(0).toUpperCase() + str.slice(1);
   }
 }
+
+// delete transactions and update the UI
+transactionHistoryBody.addEventListener("click", function(e){
+  if(e.target.closest('.delete-transaction-button')){
+    const index = e.target.closest('.delete-transaction-button').dataset.index;
+    deleteTransaction(Number(index));
+    displayTransactions();
+    renderSummary();
+  }
+})
 
 function deleteTransaction(index) {
   if (index < 0 || index >= transactions.length) {
@@ -79,107 +124,11 @@ function deleteTransaction(index) {
   saveData();
 }
 
-function promptForNewTransaction() {
-  console.log("Please enter details to add a new transaction:");
-  const description = prompt("Enter transaction description:");
-  const type = prompt("Enter transaction type (income/expense):");
-  const amount = parseFloat(prompt("Enter transaction amount:"));
-
-  addTransaction(description, type, amount);
-
-  console.log(
-    `Transaction added successfully! Current balance is: $${balance}.`
-  );
+function renderSummary() {
+  totalIncomeElem.textContent = `$${totalIncome.toFixed(2)}`;
+  totalExpensesElem.textContent = `$${totalExpenses.toFixed(2)}`;
+  totalBalanceElem.textContent = `$${balance.toFixed(2)}`;
 }
-
-function promptForDeleteTransaction() {
-  console.log("Delete a transaction.");
-  console.log("Current transactions:");
-  displayTransactions();
-  // check if there are any transactions to delete
-  if (transactions.length === 0) {
-    console.log("No transactions to delete.");
-    return;
-  }
-  const userInput = parseInt(prompt("Enter the index of the transaction to delete:"));
-
-  if(userInput === null){
-    console.log("Deletion cancelled.");
-    return;
-  }
-
-  // if(userInput.trim() === ""){
-  //   console.log("No input provided. Deletion cancelled.");
-  //   return;
-  // }
-
-  const index = parseInt(userInput);
-
-  if(isNaN(index)){
-    console.log("Invalid input. Please enter a valid number.");
-    return;
-  }
-
-  if (index < 0 || index >= transactions.length) {
-    console.log(`Invalid index. Please enter a number between 0 and ${transactions.length - 1}.`);
-    return;
-  }
-
-  const transactionToDelete = transactions[index];
-
-  console.log(`You are about to delete: ${transactionToDelete.description} (${transactionToDelete.type}) - $${transactionToDelete.amount}`);
-
-  const confirmation = prompt("Are you sure you want to delete this transaction? (yes/no)");
-  if (confirmation.toLowerCase() !== "yes" || confirmation == null) {
-    console.log("Deletion cancelled.");
-    return;
-  }
-  // Proceed with deletion
-  deleteTransaction(index);
-  console.log(
-    `Transaction at index ${index} deleted successfully! Current balance is: $${balance}.`
-  );
-}
-
-function showBalanceSummary() {
-  console.log(`Total Income: $${totalIncome}`);
-  console.log(`Total Expenses: $${totalExpenses}`);
-  console.log(`Current Balance: $${balance}`);
-}
-
-function showMenu() {
-  console.log("Budget Management System");
-  console.log("1. Add Transaction");
-  console.log("2. Delete Transaction");
-  console.log("3. Show Transactions");
-  console.log("4. Show Balance Summary");
-  console.log("5. Exit");
-
-  let choice = prompt("Enter your choice(1-5):");
-
-  switch (choice) {
-    case "1":
-      promptForNewTransaction();
-      break;
-    case "2":
-      promptForDeleteTransaction();
-      break;
-    case "3":
-      displayTransactions();
-      break;
-    case "4":
-      showBalanceSummary();
-      break;
-    case "5":
-      console.log("Exiting the Simple Personal Budgeting App. Goodbye!");
-      break;
-    default:
-      console.log("Invalid choice. Please try again.");
-  }
-}
-
-console.log("Welcome to the Simple Personal Budgeting App!");
-showMenu();
 
 //data saving and loading through browser sessions
 function saveData() {
@@ -227,6 +176,7 @@ function loadData() {
 
 window.addEventListener("load", function () {
   if (loadData()) {
-    console.log(`Current balance: $${balance}`);
+    displayTransactions();
+    renderSummary();
   }
 });
